@@ -11,7 +11,7 @@ def update_cache_for_url(url):
 
 def request_should_be_ignored(request):
     for url in settings.IGNORE_URLS:
-        if url in request.path:
+        if url == request.path:
             return True
 
     extension = None
