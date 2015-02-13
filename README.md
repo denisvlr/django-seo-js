@@ -1,78 +1,66 @@
 django-seo-js
 =============
 
-![Build status](https://circleci.com/gh/greenkahuna/django-seo-js.png?circle-token=90ca5d5cbeb2af20bc378faf1b196e6c03e69f26)
+[![Build Status](https://circleci.com/gh/skoczen/django-seo-js/tree/master.svg?style=svg&circle-token=90ca5d5cbeb2af20bc378faf1b196e6c03e69f26)](https://circleci.com/gh/skoczen/django-seo-js/tree/master) ![Pypi Badge](https://badge.fury.io/py/django-seo-js.png)   ![Downloads Badge](https://pypip.in/d/django-seo-js/badge.png)
 
 django-seo-js is a drop-in app that provides full SEO support for angular, backbone, ember, famo.us, and other SPA apps built with django.
 
 It's simple to set up, configurable to use multiple services, and easy to customize.
 
 Quick-links:
-- [Installation](README.md#installation)
-- [Options](README.md#options)
-    - [General Settings](README.md#General-Settings)
-    - [Backend settings](README.md#Backend-settings)
-        - [Prerender.io](README.md#Prerender-io)
-        - [Custom-hosted prerender](README.md#custom-hosted-prerender)
-- [How it all works](README.md#how-it-all-works)
-- [Contributing](README.md#contributing)
-- [Releases](README.md#releases)
+- [Installation](#installation)
+- [Options](#options)
+    - [General Settings](#General-Settings)
+    - [Backend settings](#Backend-settings)
+        - [Prerender.io](#Prerender-io)
+        - [Custom-hosted prerender](#custom-hosted-prerender)
+- [Advanced Usage](#advanced-usage)
+    - [Updating the render cache](#updating-the-render-cache)
+- [How it all works](#how-it-all-works)
+- [Contributing](#contributing)
+    - [Code](#code)
+    - [Culture](#culture)
+- [Authors](#authors)
+- [Releases](#releases)
 
 
 # Installation
 
-Pip install:
+1. Pip install:
 
-```bash
-pip install django-seo-js
-```
+    ```bash
+    pip install django-seo-js
+    ```
 
 
-Add to your `settings.py`:
+2. Add to your `settings.py`:
 
-```python
-# If in doubt, just include both.  Details below.
-MIDDLEWARE_CLASSES = (
-    'django_seo_js.middleware.HashBangMiddleware',  # If you're using #!
-    'django_seo_js.middleware.UserAgentMiddleware',  # If you want to detect by user agent
-) + MIDDLEWARE_CLASSES
+    ```python
+    # If in doubt, just include both.  Details below.
+    MIDDLEWARE_CLASSES = (
+        'django_seo_js.middleware.HashBangMiddleware',  # If you're using #!
+        'django_seo_js.middleware.UserAgentMiddleware',  # If you want to detect by user agent
+    ) + MIDDLEWARE_CLASSES
 
-INSTALLED_APPS += ('django_seo_js',)
+    INSTALLED_APPS += ('django_seo_js',)
 
-# If you're using prerender.io (the default backend):
-SEO_JS_PRERENDER_TOKEN = "123456789abcdefghijkl"
-```
+    # If you're using prerender.io (the default backend):
+    SEO_JS_PRERENDER_TOKEN = "123456789abcdefghijkl"  # Really, put this in your env, not your codebase.
+    ```
 
-Add this to your `base.html`
+3. Add to your `base.html`
 
-```twig
-{% load django_seo_js %}
-<head>
-    {% seo_js_head %}
-    ...
-</head>
-```
+    ```twig
+    {% load django_seo_js %}
+    <head>
+        {% seo_js_head %}
+        ...
+    </head>
+    ```
 
-That's it!  Your js-heavy pages are now rendered properly to the search engines. Have a lovely day.
+4. **That's it. :)**  Your js-heavy pages are now rendered properly to the search engines. Have a lovely day.
 
-# Updating the render cache
-
-If you know a page's contents have changed, some backends allow you to manually update the page cache.  `django-seo-js` provides helpers to make that easy.
-
-```python
-from django_seo_js.helpers import update_cache_for_url
-
-update_cache_for_url("/my-url")
-```
-
-So, for instance, you might want something like:
-
-```python
-def listing_changed(sender, instance, created, **kwargs):
-    update_cache_for_url("%s%s" % ("http://example.com/", reverse("listing_detail", instance.pk))
-
-post_save.connect(listing_changed, sender=Listing)
-```
+Want more advanced control?  Keep reading.
 
 
 # Options
@@ -110,7 +98,6 @@ SEO_JS_IGNORE_EXTENSIONS = [
     # See helpers.py for full list of extensions ignored by default.
 ]
 ```
-
 
 ## Backend settings
 
@@ -165,8 +152,29 @@ class MyBackend(SEOBackendBase):
 
 If you're hitting an http endpoint, there's also the helpful `RequestsBasedBackend`, which has a `build_django_response_from_requests_response` method that transforms a [python-requests](http://docs.python-requests.org/) response to a django HttpResponse, including headers, status codes, etc.
 
+# Advanced Usage
 
-## How it all works
+## Updating the render cache
+
+If you know a page's contents have changed, some backends allow you to manually update the page cache.  `django-seo-js` provides helpers to make that easy.
+
+```python
+from django_seo_js.helpers import update_cache_for_url
+
+update_cache_for_url("/my-url")
+```
+
+So, for instance, you might want something like:
+
+```python
+def listing_changed(sender, instance, created, **kwargs):
+    update_cache_for_url("%s%s" % ("http://example.com/", reverse("listing_detail", instance.pk))
+
+post_save.connect(listing_changed, sender=Listing)
+```
+
+
+# How it all works
 
 If you're looking for a big-picture explanation of how SEO for JS-heavy apps is handled, the clearest explanation I've seen is [this StackOverflow answer](http://stackoverflow.com/a/20766253).
 
@@ -179,13 +187,48 @@ If even that's TL;DR for you, here's a bullet-point summary:
 
 # Contributing
 
+## Code
+
 PRs with additional backends, bug-fixes, documentation and more are definitely welcome! 
 
-Please add tests to any new functionality - you can run tests with `python manage.py test`
+Here's some guidelines on new code:
+- Incoming code should follow PEP8 (there's a test to help out on this.)
+- If you add new core-level features, write some quick docs in the README.  If you're not sure if they're needed, just ask!
+- Add your name and attribution to the AUTHORS file.
+- Know you have everyone's thanks for helping to make django-seo-js even better!
 
+## Culture
+
+Anyone is welcome to contribute to django-seo-js, regardless of skill level or experience.  To make django-seo-js the best it can be, we have one big, overriding cultural principle:
+
+**Be kind.**
+
+Simple.  Easy, right?
+
+We've all been newbie coders, we've all had bad days, we've all been frustrated with libraries, we've all spoken a language we learned later in life.  In discussions with other coders, PRs, and CRs, we just give each the benefit of the doubt, listen well, and assume best intentions.  It's worked out fantastically.
+
+This doesn't mean we don't have honest, spirited discussions about the direction to move django-seo-js forward, or how to implement a feature.  We do.  We just respect one other while we do it.  Not so bad, right? :)
+
+
+# Authors
+
+django-seo-js was originally written and is maintained by [Steven Skoczen](https://stevenskoczen.com). Since then, it's been improved by lots of people, including (alphabetically):
+
+- [alex-mcleod](https://github.com/alex-mcleod) brought you the idea of ignoring certain urls via `SEO_JS_IGNORE_URLS`.
+- [andrewebdev](https://github.com/andrewebdev) improved the user-agent list to be more comprehensive.
+- [denisvlr](https://github.com/denisvlr) fixed the `update_url` method.
+- [mattrobenolt](https://github.com/mattrobenolt) mad things faster, better, and stronger.
+- [thoop](https://github.com/thoop) gave you `SEO_JS_IGNORE_EXTENSIONS`, allowing you to ignore by extension.
+
+Original development was at GreenKahuna (now defunct.)
 
 # Releases
 
+### 0.3.0 - Feb 5, 2015
+
+* Fixes to the `update_url` method, thanks to [denisvlr](https://github.com/denisvlr).
+* Optimizations in lookups, thanks to [mattrobenolt](https://github.com/mattrobenolt).
+* Changes behavior to more sanely not follow redirects, per [#9](https://github.com/skoczen/django-seo-js/issues/9), thanks to [denisvlr](https://github.com/denisvlr) and [mattrobenolt](https://github.com/mattrobenolt).
 
 ### 0.2.4 - August 12, 2014
 
